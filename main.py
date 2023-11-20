@@ -1,4 +1,4 @@
-class Point: # класс точек кораблей , поля... выстрелов
+class Point:  # класс точек кораблей , поля... выстрелов
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -49,35 +49,35 @@ class Ship:
             ship_points.append(Point(cur_x, cur_y))
         return ship_points
 
-    def damage(self, shot): # попадания в корабли
+    def damage(self, shot):  # попадания в корабли
         return shot in self.points
 
 
 class Board:
     def __init__(self, hiden=False, size=6):
         self.size = size
-        self.hiden = hiden # видимость поля
+        self.hiden = hiden  # видимость поля
 
-        self.count = 0 # счетчик сбитых кораблей
+        self.count = 0  # счетчик сбитых кораблей
 
-        self.map = [["0"] * size for _ in range(size)] # размеры поля
+        self.map = [["0"] * size for _ in range(size)]  # размеры поля
 
-        self.busy = [] # занятые чем либо поля
-        self.ships = [] # список кораблей
+        self.busy = []  # занятые чем либо поля
+        self.ships = []  # список кораблей
 
     def __str__(self):
         res = ""
-        res += "  | 1 | 2 | 3 | 4 | 5 | 6 |" # рисуем поле (шапка, поля)
+        res += "  | 1 | 2 | 3 | 4 | 5 | 6 |"  # рисуем поле (шапка, поля)
         for i, row in enumerate(self.map):
-            res += f"\n{i+1} | " + " | ".join(row) + " |" # продолжаем рисовать поле
+            res += f"\n{i + 1} | " + " | ".join(row) + " |"  # продолжаем рисовать поле
         if self.hiden:
             res = res.replace("■", "o")
         return res
 
     def out(self, d):
-        return not ((0<=d.x < self.size) and (0<= d.y < self.size))
+        return not ((0 <= d.x < self.size) and (0 <= d.y < self.size))
 
-    def contour (self, ship, verb = False):
+    def contour(self, ship, verb=False):
         near = [
             (-1, -1), (-1, 0), (-1, 1),
             (0, -1), (0, 0), (0, 1),
@@ -91,7 +91,57 @@ class Board:
                         self.map[cur.x][cur.y] = "."
                     self.busy.append(cur)
 
-    def add_ship (self, ship):
+    def add_ship(self, ship):
         for d in ship.points:
             if self.out(d) or d in self.busy:
                 raise BoardWrongShipLocationExeption()
+        for d in ship.points:
+            self.map[d.x][d.y] = "■"
+            self.busy.append(d)
+
+        self.ships.append(ship)
+        self.contour(ship)
+
+    def shot(self, d):
+        if self.out(d):
+            raise BoardOutExeption()
+        if d in self.busy:
+            raise BoardUsedExeption()
+        self.busy.append(d)
+
+        for ship in self.ships:
+            if ship.damage(d):
+                ship.health -= 1
+                self.map[d.x][d.y] = "X"
+                if ship.health == 0:
+                    self.count += 1
+                    self.contour(ship, verb=True)
+                    print("Потопил")
+                    return False
+                else:
+                    print("попал!")
+                    return True
+
+        self.map[d.x][d.y] = "."
+        print("Мимо!!")
+        return False
+
+    def begin(self):
+        self.busy = []
+
+class Player:
+    def __init__(self, board, enemy):
+        self.board = board
+        self.enemy = enemy
+
+    def ask(self):
+        raise NotImplementedError()
+
+    def move (self):
+        while True:
+            try:
+                target = self.ask()
+                repeat = self.enemy.shot(target)
+                return repeat
+            exept BoardExeption as e:
+            print(e)
