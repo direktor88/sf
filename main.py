@@ -33,7 +33,7 @@ class BoardWrongShipLocationExeption(BoardExeption):  # неверное раз�
 
 class Ship:
     def __init__(self, hv, long, orient):  # координаты носа и палубы, длинна, ориентация
-        self.hv = hv # первая точка корабля
+        self.hv = hv  # первая точка корабля
         self.long = long
         self.orient = orient
         self.health = 1
@@ -105,7 +105,7 @@ class Board:
         self.ships.append(ship)
         self.contour(ship)
 
-    def shot(self, d): # пиу пиу
+    def shot(self, d):  # пиу пиу
         if self.out(d):
             raise BoardOutExeption()
         if d in self.busy:
@@ -130,10 +130,10 @@ class Board:
         return False
 
     def begin(self):
-        self.busy = [] # поле в начале игры должно быть читсым
+        self.busy = []  # поле в начале игры должно быть читсым
 
 
-class Player: # класс игрока (может быть как живым так и нет)
+class Player:  # класс игрока (может быть как живым так и нет)
     def __init__(self, board, enemy):
         self.board = board
         self.enemy = enemy
@@ -151,14 +151,14 @@ class Player: # класс игрока (может быть как живым �
                 print(e)
 
 
-class AI(Player): # "робот"
+class AI(Player):  # "робот"
     def ask(self):
         d = Point(randint(0, 5), randint(0, 5))
         print(f'Ход компьютера: {d.x + 1} {d.y + 1}')
         return d
 
 
-class User(Player): # обычный игрок
+class User(Player):  # обычный игрок
     def ask(self):
         while True:
             cords = input("Делай ход:   ").split()
@@ -174,21 +174,32 @@ class User(Player): # обычный игрок
 
 
 class Game:
+
+    def __init__(self, size=6):
+        self.size = size
+        user_map = self.random_map()  # карта игрока
+        comp_map = self.random_map()  # карта компьютера
+        comp_map.hiden = True  # карта компьютера скрыта
+
+        self.comp = AI(comp_map, user_map)
+        self.user = User(user_map, comp_map)
+
     def try_map(self):
-        long = [3, 2, 2, 1, 1, 1, 1] # длинна кораблей
+        long = [3, 2, 2, 1, 1, 1, 1]  # длинна кораблей
         board = Board(size=self.size)
         attempts = 0
         for l in long:
             while True:
                 attempts += 1
-                if attempts > 2000: # количество попыток расставить корабли
+                if attempts > 2000:  # количество попыток расставить корабли
                     return None
-                ship = Ship(Point(randint(0, self.size), randint(0, self.size)), l, randint(0,1))
+                ship = Ship(Point(randint(0, self.size), randint(0, self.size)), l, randint(0, 1))  # генерация корабля
+                # по трем аргументам - координата первой точки, длинна корабля, ориентация вертикаль или горизонталь
                 try:
                     board.add_ship(ship)
-                    break # если получилось создать доску с кораблями выходим из попыток
+                    break  # если получилось создать доску с кораблями выходим из попыток
                 except BoardWrongShipLocationExeption:
-                    pass # возвращаемся к созданию карты и расставлению кораблей
+                    pass  # возвращаемся к созданию карты и расставлению кораблей
         board.begin()
         return board
 
@@ -198,7 +209,49 @@ class Game:
             board = self.try_map()
         return board
 
+    def greet(self):
+        print()
+        print("Привет")
+        print("это игра")
+        print("'Морской бой'")
+        print()
+        print("всё как обычно:")
+        print("мир в опасности: 'и восстали машины из пепла ядерного огня'")
+        print("для выстрела введи номер строки и столбца")
+        print()
+
+    def loop(self):
+        num = 0 # счетчик ходов
+        while True:
+            print("-" * 20)
+            print("Поле игрока")
+            print(self.user.board)
+            print("-" * 20)
+            print("Поле противника")
+            print(self.comp.board)
+            print("-" * 20)
+            if num % 2 == 0:
+                print("Ход игрока")
+                repeat = self.user.move() # повтор хода
+            else:
+                print("Ход компьютера")
+                repeat = self.comp.move()
+            if repeat:
+                num -= 1 # если попал - повторяешь попытку
+            if self.comp.board.count == 7:  # если счетчик сбитых кораблей "исчерпан"
+                print("Выиграл игрок!!!")
+                break
+            if self.user.board.count == 7: # если счетчик сбитых кораблей "исчерпан"
+                print("Выиграл COMPUTER!!!")
+                break
+            num += 1 # если промазал - переход хода
+
+    def start(self):
+        self.greet()
+        self.loop()
 
 g= Game()
-g.size = 6
-print(g.random_map())
+g.start()
+
+# g.size = 6
+# print(g.random_map())
