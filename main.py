@@ -1,3 +1,6 @@
+from random import randint
+
+
 class Point:  # класс точек кораблей , поля... выстрелов
     def __init__(self, x, y):
         self.x = x
@@ -102,7 +105,7 @@ class Board:
         self.ships.append(ship)
         self.contour(ship)
 
-    def shot(self, d):
+    def shot(self, d): # пиу пиу
         if self.out(d):
             raise BoardOutExeption()
         if d in self.busy:
@@ -127,9 +130,10 @@ class Board:
         return False
 
     def begin(self):
-        self.busy = []
+        self.busy = [] # поле в начале игры должно быть читсым
 
-class Player:
+
+class Player: # класс игрока (может быть как живым так и нет)
     def __init__(self, board, enemy):
         self.board = board
         self.enemy = enemy
@@ -137,11 +141,63 @@ class Player:
     def ask(self):
         raise NotImplementedError()
 
-    def move (self):
+    def move(self):
         while True:
             try:
                 target = self.ask()
                 repeat = self.enemy.shot(target)
                 return repeat
-            exept BoardExeption as e:
+            exept
+            BoardExeption as e:
             print(e)
+
+
+class AI(Player): # "робот"
+    def ask(self):
+        d = Point(randint(0, 5), randint(0, 5))
+        print(f'Ход компьютера: {d.x + 1} {d.y + 1}')
+        return d
+
+
+class User(Player): # обычный игрок
+    def ask(self):
+        while True:
+            cords = input("Делай ход:   ").split()
+            if len(cords) != 2:
+                print("Нужно две цифры!")
+                continue
+            x, y = cords
+            if not (x.isdigit()) or not (y.isdigit()):
+                print("Введи только цифры!!")
+                continue
+            x, y = int(x), int(y)
+            return Point(x - 1, y - 1)
+
+
+class Game:
+    def try_map(self):
+        long = [3, 2, 2, 1, 1, 1, 1] # длинна кораблей
+        board = Board(size=self.size)
+        attempts = 0
+        for l in long:
+            while True:
+                attempts += 1
+                if attempts > 2000:
+                    return None
+                ship = Ship(Point(randint(0, self.size), randint(0, self.size), l, randint(0, 1)))
+                try:
+                    board.add_ship(ship)
+                    break # если получилось создать доску с кораблями выходим из попыток
+                exept
+                BoardWrongShipLocationExeption:
+                pass # возвращаемся к созданию карты и расставлению кораблей
+
+    board.begin()
+    return board
+
+
+def random_board(self):
+    board = None
+    while board is None:
+        board = self.try_board()
+    return board
