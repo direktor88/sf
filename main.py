@@ -147,8 +147,7 @@ class Player: # класс игрока (может быть как живым �
                 target = self.ask()
                 repeat = self.enemy.shot(target)
                 return repeat
-            exept
-            BoardExeption as e:
+            except BoardExeption as e:
             print(e)
 
 
@@ -182,7 +181,7 @@ class Game:
         for l in long:
             while True:
                 attempts += 1
-                if attempts > 2000:
+                if attempts > 2000: # количество попыток расставить корабли
                     return None
                 ship = Ship(Point(randint(0, self.size), randint(0, self.size), l, randint(0, 1)))
                 try:
@@ -191,13 +190,13 @@ class Game:
                 exept
                 BoardWrongShipLocationExeption:
                 pass # возвращаемся к созданию карты и расставлению кораблей
-
     board.begin()
     return board
-
-
-def random_board(self):
-    board = None
-    while board is None:
-        board = self.try_board()
-    return board
+    def random_board(self):
+        board = None
+        while board is None:
+            board = self.try_map()
+        return board
+g= Game()
+g.size = 6
+print(g.try_map())
