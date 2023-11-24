@@ -1,4 +1,4 @@
-from random import randint
+from random import randint  # добавляем случайные числа
 
 
 class Point:  # класс точек кораблей , поля... выстрелов
@@ -7,7 +7,7 @@ class Point:  # класс точек кораблей , поля... выстр�
         self.y = y
 
     def __eq__(self, other):
-        return self.x == other.x and self.y == other.y
+        return self.x == other.x and self.y == other.y  # сверка одного значения с другим
 
     def __repr__(self):
         return f"Point({self.x}, {self.y}"
@@ -39,13 +39,13 @@ class Ship:
         self.health = 1
 
     @property
-    def points(self):
-        ship_points = []
-        for i in range(self.long):
+    def points(self):  #
+        ship_points = []  # точки корабля
+        for i in range(self.long):  # проходим по длинне
             cur_x = self.hv.x
             cur_y = self.hv.y
 
-            if self.orient == 0:
+            if self.orient == 0:  # размещаем корабль на поле в зависимости от ориентации
                 cur_x += i
             elif self.orient == 1:
                 cur_y += i
@@ -58,7 +58,7 @@ class Ship:
 
 class Board:
     def __init__(self, hiden=False, size=6):
-        self.size = size
+        self.size = size  # размер
         self.hiden = hiden  # видимость поля
 
         self.count = 0  # счетчик сбитых кораблей
@@ -78,54 +78,55 @@ class Board:
         return res
 
     def out(self, d):
-        return not ((0 <= d.x < self.size) and (0 <= d.y < self.size))
+        return not ((0 <= d.x < self.size) and (0 <= d.y < self.size))  # проверка на попадание в габариты поля
 
-    def contour(self, ship, verb=False):
+    def contour(self, ship, verb=False):  # обводим по контуру корабля (для проверки можно ли поставить корабль
+        # и не только)
         near = [
-            (-1, -1), (-1, 0), (-1, 1),
+            (-1, -1), (-1, 0), (-1, 1),  # точки контура вокруг корабля
             (0, -1), (0, 0), (0, 1),
             (1, -1), (1, 0), (1, 1)
         ]
-        for d in ship.points:
-            for dx, dy in near:
-                cur = Point(d.x + dx, d.y + dy)
-                if not (self.out(cur)) and cur not in self.busy:
+        for d in ship.points:  # проверяем точки корабля
+            for dx, dy in near:  # шарим вокруг да около...
+                cur = Point(d.x + dx, d.y + dy)  # точки занятости
+                if not (self.out(cur)) and cur not in self.busy:  # проверка на занятость и выстрелы в молоко
                     if verb:
-                        self.map[cur.x][cur.y] = "."
-                    self.busy.append(cur)
+                        self.map[cur.x][cur.y] = "."  # если мимо ставим точку
+                    self.busy.append(cur)  # заполняем поле "занятости"
 
-    def add_ship(self, ship):
-        for d in ship.points:
-            if self.out(d) or d in self.busy:
+    def add_ship(self, ship):  # добавить корабль
+        for d in ship.points:  # перебор (итерация) точек корабля
+            if self.out(d) or d in self.busy:  # если точка за пределами поля или занята - исключение
                 raise BoardWrongShipLocationExeption()
-        for d in ship.points:
+        for d in ship.points:  # исключения нет - добавляем на поле корабль из квадратов и в поле "занятости"
             self.map[d.x][d.y] = "■"
             self.busy.append(d)
 
-        self.ships.append(ship)
-        self.contour(ship)
+        self.ships.append(ship)  # добавляем в список коралей "корабль"
+        self.contour(ship)  # обрисовываем контур корабля
 
     def shot(self, d):  # пиу пиу
-        if self.out(d):
+        if self.out(d):  # проверка на выстрел за пределы поля
             raise BoardOutExeption()
-        if d in self.busy:
+        if d in self.busy:  # проверка на занятую клетку
             raise BoardUsedExeption()
-        self.busy.append(d)
+        self.busy.append(d)  # заполняем (дополняем) поле занятости
 
-        for ship in self.ships:
-            if ship.damage(d):
-                ship.health -= 1
-                self.map[d.x][d.y] = "X"
-                if ship.health == 0:
+        for ship in self.ships:  # перебор "корабля" в списке кораблей
+            if ship.damage(d):  # если корабль повреждее (есть попадание)
+                ship.health -= 1 # вычитаем 1 из уровня здоровья
+                self.map[d.x][d.y] = "X" # отмечаем крестиком попадание
+                if ship.health == 0: # если полностью подбит корабль
                     self.count += 1
                     self.contour(ship, verb=True)
                     print("Потопил")
                     return False
                 else:
-                    print("попал!")
+                    print("попал!") # если только попал
                     return True
 
-        self.map[d.x][d.y] = "."
+        self.map[d.x][d.y] = "." # если не попал
         print("Мимо!!")
         return False
 
@@ -138,7 +139,7 @@ class Player:  # класс игрока (может быть как живым 
         self.board = board
         self.enemy = enemy
 
-    def ask(self):
+    def ask(self): # проверка, опрос
         raise NotImplementedError()
 
     def move(self):
@@ -153,15 +154,15 @@ class Player:  # класс игрока (может быть как живым 
 
 class AI(Player):  # "робот"
     def ask(self):
-        d = Point(randint(0, 5), randint(0, 5))
-        print(f'Ход компьютера: {d.x + 1} {d.y + 1}')
-        return d
+        d = Point(randint(0, 5), randint(0, 5)) # выстрелы робота в диапазоне от 0 до 5 (случайные числа)
+        print(f'Ход компьютера: {d.x + 1} {d.y + 1}') # добавляем 1 в связи с особенностью машинного счета
+        return d # возвращаем координаты выстрела
 
 
 class User(Player):  # обычный игрок
-    def ask(self):
+    def ask(self): # действия игрока (выстрелы)
         while True:
-            cords = input("Делай ход:   ").split()
+            cords = input("Делай ход: введи координаты   ").split()
             if len(cords) != 2:
                 print("Нужно две цифры!")
                 continue
@@ -170,7 +171,7 @@ class User(Player):  # обычный игрок
                 print("Введи только цифры!!")
                 continue
             x, y = int(x), int(y)
-            return Point(x - 1, y - 1)
+            return Point(x - 1, y - 1) # убавляем 1 в связи с особенностью машинного счета, отправляем точки выстрела
 
 
 class Game:
@@ -187,23 +188,24 @@ class Game:
     def try_map(self):
         long = [3, 2, 2, 1, 1, 1, 1]  # длинна кораблей
         board = Board(size=self.size)
-        attempts = 0
-        for l in long:
+        attempts = 0 # счетчик попыток
+        for l in long: # перебор длинн кораблей
             while True:
                 attempts += 1
                 if attempts > 2000:  # количество попыток расставить корабли
                     return None
                 ship = Ship(Point(randint(0, self.size), randint(0, self.size)), l, randint(0, 1))  # генерация корабля
-                # по трем аргументам - координата первой точки, длинна корабля, ориентация вертикаль или горизонталь
-                try:
+                # по трем аргументам - координата первой (начальной) точки, длинна корабля,
+                # генерация - ориентации вертикаль или горизонталь
+                try: # пробуй добавить корабль на поле
                     board.add_ship(ship)
                     break  # если получилось создать доску с кораблями выходим из попыток
                 except BoardWrongShipLocationExeption:
                     pass  # возвращаемся к созданию карты и расставлению кораблей
-        board.begin()
-        return board
+        board.begin() # по завершению
+        return board # вернуть заполненное поле
 
-    def random_map(self):
+    def random_map(self): # генерация случайной карты
         board = None
         while board is None:
             board = self.try_map()
@@ -221,7 +223,7 @@ class Game:
         print()
 
     def loop(self):
-        num = 0 # счетчик ходов
+        num = 0  # счетчик ходов
         while True:
             print("-" * 20)
             print("Поле игрока")
@@ -232,25 +234,26 @@ class Game:
             print("-" * 20)
             if num % 2 == 0:
                 print("Ход игрока")
-                repeat = self.user.move() # повтор хода
+                repeat = self.user.move()  # повтор хода
             else:
                 print("Ход компьютера")
                 repeat = self.comp.move()
             if repeat:
-                num -= 1 # если попал - повторяешь попытку
+                num -= 1  # если попал - повторяешь попытку
             if self.comp.board.count == 7:  # если счетчик сбитых кораблей "исчерпан"
                 print("Выиграл игрок!!!")
                 break
-            if self.user.board.count == 7: # если счетчик сбитых кораблей "исчерпан"
+            if self.user.board.count == 7:  # если счетчик сбитых кораблей "исчерпан"
                 print("Выиграл COMPUTER!!!")
                 break
-            num += 1 # если промазал - переход хода
+            num += 1  # если промазал - переход хода
 
     def start(self):
         self.greet()
         self.loop()
 
-g= Game()
+
+g = Game()
 g.start()
 
 # g.size = 6
